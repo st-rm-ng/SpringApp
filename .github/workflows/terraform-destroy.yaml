@@ -6,6 +6,7 @@ on:
 env:
   AWS_REGION: us-east-1
   S3_BUCKET: terraform-state-spring-boot-app
+  ECR_REPOSITORY: spring-boot-app
 
 jobs:
   destroy:
@@ -22,6 +23,11 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
+      - name: ECR Images Delete
+        run: |
+          aws ecr batch-delete-image --region ${{ env.AWS_REGION }} \
+            --repository-name ${{ env.ECR_REPOSITORY }} \
+            --image-ids "$(aws ecr list-images --region ${{ env.AWS_REGION }} --repository-name ${{ env.ECR_REPOSITORY }} --query 'imageIds[*]' --output json)" || true
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
