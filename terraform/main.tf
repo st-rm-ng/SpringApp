@@ -5,7 +5,7 @@ provider "aws" {
 # VPC and networking resources
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 3.0"
+  version = "~> 5.2.0"
   
   name = "${var.app_name}-vpc"
   cidr = "10.0.0.0/16"
