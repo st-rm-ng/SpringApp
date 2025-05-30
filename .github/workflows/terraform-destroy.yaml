@@ -38,4 +38,10 @@ jobs:
 
       - name: Delete S3 bucket (Terraform State)
         run: |
+          aws s3api delete-objects \
+            --bucket ${{ env.S3_BUCKET }} \
+            --delete "$(aws s3api list-object-versions \
+            --bucket "${{ env.S3_BUCKET }}" \
+            --output=json \
+            --query='{Objects: Versions[].{Key:Key,VersionId:VersionId}}')"
           aws s3 rb s3://${{ env.S3_BUCKET }} --force
