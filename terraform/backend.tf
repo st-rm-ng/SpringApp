@@ -1,4 +1,4 @@
-# Note: You need to create the S3 bucket and DynamoDB table manually before using this backend,
+# Note: You need to create the S3 bucket manually before using this backend,
 # or comment this out for the first run and create these resources with Terraform
 
 terraform {
