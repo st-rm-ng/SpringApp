@@ -6,7 +6,6 @@ on:
 env:
   AWS_REGION: us-east-1
   S3_BUCKET: terraform-state-spring-boot-app
-  DYNAMODB_TABLE: terraform-locks
 
 jobs:
   destroy:

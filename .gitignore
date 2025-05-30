@@ -33,6 +33,10 @@ out/
 /nbdist/
 /.nb-gradle/
 
+### Terraform ###
+.terraform/
+.terraform.lock.hcl
+
 ### VS Code ###
 .vscode/
 .devbox
