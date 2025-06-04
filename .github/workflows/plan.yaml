@@ -1,4 +1,4 @@
-name: Plan and Build App
+name: Setup TF and Build App
 
 on:
   workflow_dispatch:  # manual trigger only
@@ -23,10 +23,6 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.10.0
-      
-      - name: Terraform Validate
-        working-directory: ./terraform
-        run: terraform validate
             
   build:
     name: "Build"
