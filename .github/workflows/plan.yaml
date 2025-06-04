@@ -1,0 +1,65 @@
+name: Plan and Build App
+
+on:
+  workflow_dispatch:  # manual trigger only
+
+env:
+  AWS_REGION: us-east-1                  
+  ECR_REPOSITORY: spring-boot-app         # Should match var.app_name in terraform
+  ECS_CLUSTER: spring-boot-app-cluster    # Should match cluster name in terraform
+  ECS_SERVICE: spring-boot-app-service    # Should match service name in terraform
+  TASK_DEFINITION: task-definition.json
+
+jobs:
+  terraform:
+    name: "Terraform Infrastructure"
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.10.0
+      
+      - name: Terraform Init
+        working-directory: ./terraform
+        run: terraform init
+      
+      - name: Terraform Validate
+        working-directory: ./terraform
+        run: terraform validate
+      
+      - name: Terraform Plan
+        working-directory: ./terraform
+        run: terraform plan -out=tfplan
+      
+  build:
+    name: "Build"
+    needs: terraform
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Build with Gradle
+        run: ./gradlew build
