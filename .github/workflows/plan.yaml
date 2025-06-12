@@ -32,6 +32,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           
       - name: Create S3 State Backend
+        continue-on-error: true
         run: |
           # Create S3 bucket for Terraform state
           aws s3api create-bucket \
