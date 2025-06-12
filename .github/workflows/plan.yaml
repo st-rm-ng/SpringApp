@@ -18,12 +18,43 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-            
+          
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.10.0
+      
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
           
+      - name: Create S3 State Backend
+        run: |
+          # Create S3 bucket for Terraform state
+          aws s3api create-bucket \
+            --bucket terraform-state-spring-boot-app \
+            --region us-east-1
+          
+          # Enable bucket versioning
+          aws s3api put-bucket-versioning \
+            --bucket terraform-state-spring-boot-app \
+            --versioning-configuration Status=Enabled
+          
+          # Enable default encryption
+          aws s3api put-bucket-encryption \
+            --bucket terraform-state-spring-boot-app \
+            --server-side-encryption-configuration '{
+              "Rules": [
+                {
+                  "ApplyServerSideEncryptionByDefault": {
+                    "SSEAlgorithm": "AES256"
+                  }
+                }
+              ]
+            }'
       - name: Terraform Init
         working-directory: ./terraform
         run: terraform init
