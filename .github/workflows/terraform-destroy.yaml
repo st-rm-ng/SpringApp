@@ -44,10 +44,25 @@ jobs:
 
       - name: Delete S3 bucket (Terraform State)
         run: |
-          aws s3api delete-objects \
-            --bucket ${{ env.S3_BUCKET }} \
-            --delete "$(aws s3api list-object-versions \
-            --bucket "${{ env.S3_BUCKET }}" \
-            --output=json \
-            --query='{Objects: Versions[].{Key:Key,VersionId:VersionId}}')"
+          bucket=terraform-state-spring-boot-app
+          token=""
+          
+          while : ; do
+            resp=$(aws s3api list-object-versions \
+                      --bucket "$bucket" \
+                      --output json \
+                      ${token:+--starting-token "$token"})
+          
+            del=$(jq '{
+                       Objects: ((.Versions     // [])
+                              +  (.DeleteMarkers // []))
+                              | map({Key,VersionId})
+                     }' <<<"$resp")
+          
+            [ "$(jq '.Objects|length' <<<"$del")" -eq 0 ] && break
+            aws s3api delete-objects --bucket "$bucket" --delete "$del"
+          
+            token=$(jq -r '.NextToken // empty' <<<"$resp")
+            [ -z "$token" ] && break
+          done
           aws s3 rb s3://${{ env.S3_BUCKET }} --force
