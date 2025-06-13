@@ -71,12 +71,12 @@ jobs:
       - name: Delete S3 bucket (Terraform State)
         run: |
           aws s3api delete-objects \
-            --bucket ${{ env.S3_BUCKET }} \
+            --bucket terraform-state-spring-boot-app \
             --delete "$(aws s3api list-object-versions \
-            --bucket "${{ env.S3_BUCKET }}" \
+            --bucket "terraform-state-spring-boot-app \
             --output=json \
             --query='{Objects: Versions[].{Key:Key,VersionId:VersionId}}')"
-          aws s3 rb s3://${{ env.S3_BUCKET }} --force
+          aws s3 rb s3://terraform-state-spring-boot-app --force
           
   build:
     name: "Build"
