@@ -51,7 +51,7 @@ NOTE: Before doing any changes to this repository, fork it first!
 Before you can deploy your Spring Boot application to AWS using Terraform and GitHub Actions, you need to complete several prerequisite steps. This guide walks you through setting up all required resources and permissions.
 
 ## Install CLI tools:
- 
+
 - AWS v2 CLI - https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#getting-started-install-instructions
 - Git CLI
 
@@ -111,17 +111,17 @@ aws configure
 
 # Create S3 bucket for Terraform state
 aws s3api create-bucket \
-  --bucket terraform-state-spring-boot-app \
+  --bucket terraform-state-spring-boot-app-aantal \
   --region us-east-1
 
 # Enable bucket versioning
 aws s3api put-bucket-versioning \
-  --bucket terraform-state-spring-boot-app \
+  --bucket terraform-state-spring-boot-app-aantal \
   --versioning-configuration Status=Enabled
 
 # Enable default encryption
 aws s3api put-bucket-encryption \
-  --bucket terraform-state-spring-boot-app \
+  --bucket terraform-state-spring-boot-app-aantal \
   --server-side-encryption-configuration '{
     "Rules": [
       {
@@ -202,7 +202,7 @@ implementation 'org.springframework.boot:spring-boot-starter-web'
 3. Watch as your first deployment runs
 4. Troubleshoot any issues by checking the workflow logs
 
-## 6. Verify Setup 
+## 6. Verify Setup
 
 After deployment, verify:
 
@@ -233,7 +233,7 @@ Review and update:
 
 The CI/CD pipeline runs automatically when code is pushed to the main branch:
 
-1. **Infrastructure Provisioning**: 
+1. **Infrastructure Provisioning**:
    - Terraform creates or updates AWS resources
 
 2. **Application Build**:
@@ -280,4 +280,3 @@ Execute in your terminal:
 docker build -t spring-boot-app .
 docker run -p 8080:8080 spring-boot-app
 ```
-

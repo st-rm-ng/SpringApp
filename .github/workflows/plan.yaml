@@ -4,7 +4,7 @@ on:
   workflow_dispatch:  # manual trigger only
 
 env:
-  AWS_REGION: us-east-1                  
+  AWS_REGION: us-east-1
   ECR_REPOSITORY: spring-boot-app         # Should match var.app_name in terraform
   ECS_CLUSTER: spring-boot-app-cluster    # Should match cluster name in terraform
   ECS_SERVICE: spring-boot-app-service    # Should match service name in terraform
@@ -14,39 +14,39 @@ jobs:
   terraform:
     name: "Terraform Infrastructure"
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-          
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.10.0
-      
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-          
+
       - name: Create S3 State Backend
         continue-on-error: true
         run: |
           # Create S3 bucket for Terraform state
           aws s3api create-bucket \
-            --bucket terraform-state-spring-boot-app \
+            --bucket terraform-state-spring-boot-app-aantal \
             --region us-east-1
-          
+
           # Enable bucket versioning
           aws s3api put-bucket-versioning \
-            --bucket terraform-state-spring-boot-app \
+            --bucket terraform-state-spring-boot-app-aantal \
             --versioning-configuration Status=Enabled
-          
+
           # Enable default encryption
           aws s3api put-bucket-encryption \
-            --bucket terraform-state-spring-boot-app \
+            --bucket terraform-state-spring-boot-app-aantal \
             --server-side-encryption-configuration '{
               "Rules": [
                 {
@@ -59,11 +59,11 @@ jobs:
       - name: Terraform Init
         working-directory: ./terraform
         run: terraform init
-      
+
       - name: Terraform Validate
         working-directory: ./terraform
         run: terraform validate
-      
+
       - name: Terraform Plan
         working-directory: ./terraform
         run: terraform plan -out=tfplan
@@ -72,42 +72,42 @@ jobs:
         run: |
           bucket=terraform-state-spring-boot-app
           token=""
-          
+
           while : ; do
             resp=$(aws s3api list-object-versions \
                       --bucket "$bucket" \
                       --output json \
                       ${token:+--starting-token "$token"})
-          
+
             del=$(jq '{
                        Objects: ((.Versions     // [])
                               +  (.DeleteMarkers // []))
                               | map({Key,VersionId})
                      }' <<<"$resp")
-          
+
             [ "$(jq '.Objects|length' <<<"$del")" -eq 0 ] && break
             aws s3api delete-objects --bucket "$bucket" --delete "$del"
-          
+
             token=$(jq -r '.NextToken // empty' <<<"$resp")
             [ -z "$token" ] && break
           done
           aws s3 rb s3://terraform-state-spring-boot-app --force
-          
+
   build:
     name: "Build"
     needs: terraform
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-      
+
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
-      
+
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
